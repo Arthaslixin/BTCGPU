@@ -13,6 +13,7 @@
 #include "streams.h"
 #include "uint256.h"
 #include "util.h"
+#include <algorithm>
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock,
                                  const Consensus::Params& params)
@@ -59,22 +60,24 @@ unsigned int JacobEmaGetNextWorkRequired(const CBlockIndex* pindexLast, const CB
 
     int T = params.nPowTargetSpacing;   // 600
     int N = params.nJacobEmaAveragingWindow;   // 50
-    int limit = std::min(7, std::max(N * 100 / 89) - N), 10);
+    int limit = std::min(7, std::max((N * 100 / 89) - N, 10));
+    uint32_t previous_target = pindexLast->nBits;
 
     // Find the max timestamp within last `limit` blocks.
     int height_first = pindexLast->nHeight - limit + 1;
     assert(height_first >= 0);
     int64_t max_time = 0;
-    for (int i = nHeightFirst; i < pindexLast->nHeight; ++i) {
+    for (int i = height_first; i < pindexLast->nHeight; ++i) {
         int64_t block_time = pindexLast->GetAncestor(i)->GetBlockTime();
         if (block_time > max_time) {
             max_time = block_time;
         }
     }
 
-    uint64_t solve_time = pindexLast->GetBlockTime() - max_time;   // ~600
-    solve_time = std::max(T / 200, std::min(T * limit, ST));
+    arith_uint256 solve_time = pindexLast->GetBlockTime() - max_time;   // ~600
+    solve_time = std::max((arith_uint256)(T / 200), std::min((arith_uint256)(T * limit), solve_time));
 
+    
 
     // (T, N, solve_time) --> int32/64
 
@@ -86,17 +89,42 @@ unsigned int JacobEmaGetNextWorkRequired(const CBlockIndex* pindexLast, const CB
     //        = previous_target * ( .... )
 
 
-    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
+    const CBlockIndex* pindexFirst = pindexLast->GetAncestor(height_first);
     assert(pindexFirst);
 
-    return JacobEmaCalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
+    return JacobEmaCalculateNextWorkRequired(T, N , solve_time, previous_target);
 }
 
-unsigned int JacobEmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime,
-                                               const Consensus::Params& params)
+unsigned int JacobEmaCalculateNextWorkRequired(int T, int N, arith_uint256 solve_time, uint32_t previous_target)
 {
-    // TODO
+    uint32_t target_high = (previous_target >> 24) & 0xFF;
+    arith_uint256 target_low = previous_target & 0xFFFFFF;
+    arith_uint256 num = target_low << 192;
+    arith_uint256 exp = (solve_time << 128) / T * 2 / N;
+    int n = 15;
+    arith_uint256 u256_1 = arith_uint256(1) << 128;
+    arith_uint256 expResult = u256_1;
+    while(n > 0){
+        expResult = (u256_1 - exp * expResult / n) >> 128;
+        n--;
+    }
+    arith_uint256 den = (solve_time - arith_uint256(T)) * expResult + (arith_uint256(T) << 128);
+    arith_uint256 tar = (num * solve_time / den) >> (192 - 128);
+    tar = tar << (8 * (target_high - 3));
+    uint32_t result = tar.GetCompact();
+    return result;
 }
+
+// arith_uint256 SimNegExpU256(arith_uint256 x, int n)
+// {
+//     arith_uint256 u256_1 = pow(2,128);
+//     arith_uint256 r = u256_1;
+//     while(n > 0){
+//         r = u256_1 - x * r / n / pow(2, 128);
+//         n--;
+//     }
+//     return r;
+// }
 
 unsigned int DigishieldGetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock,
                                            const Consensus::Params& params)

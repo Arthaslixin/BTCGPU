@@ -100,7 +100,7 @@ public:
         consensus.BTGHeight = 491407; // Around 10/25/2017 12:00 UTC
         consensus.BTGPremineWindow = 8000;
         consensus.BTGPremineEnforceWhitelist = true;
-        consnesus.BTGJacobEmaHeight = std::numeric_limits<int>::max();  // Not activated yet.
+        consensus.BTGJacobEmaHeight = std::numeric_limits<int>::max();  // Not activated yet.
         consensus.powLimit = uint256S("0007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.powLimitStart = uint256S("0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.powLimitLegacy = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
@@ -334,7 +334,7 @@ public:
         consensus.BTGHeight = 3000;
         consensus.BTGPremineWindow = 10;
         consensus.BTGPremineEnforceWhitelist = false;
-        consnesus.BTGJacobEmaHeight = -1;
+        consensus.BTGJacobEmaHeight = -1;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.powLimitStart = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.powLimitLegacy = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");

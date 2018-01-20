@@ -21,7 +21,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
 /** Jacob Eliosoff's EMA - used in Bitcion Gold testnet currently */
 unsigned int JacobEmaGetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params);
-unsigned int JacobEmaCalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params);
+unsigned int JacobEmaCalculateNextWorkRequired(int T, int N, arith_uint256 solve_time, uint32_t previous_target);
 
 
 /** Digishield v3 - used in Bitcoin Gold mainnet currently */

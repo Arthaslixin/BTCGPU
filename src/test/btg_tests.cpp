@@ -9,6 +9,7 @@
 #include "primitives/block.h"
 #include "test/btg_cltv_multisig_data.h"
 #include "test/test_bitcoin.h"
+#include "pow.h"
 
 #include <stdint.h>
 
@@ -96,24 +97,32 @@ std::string ConvertToOldAddress(const std::string& new_address)
     return old_addr.ToString();
 }
 
-BOOST_AUTO_TEST_CASE(address_compatible)
-{
-    std::string p2pkh_addr = "16FoV6CpUT5YPHL8rcY7SQoHvnyXY4yRsD";
-    BOOST_CHECK_EQUAL(ConvertToOldAddress(ConvertToNewAddress(p2pkh_addr)), p2pkh_addr);
-    std::string p2sh_addr = "3CjLoKt9KYcfjf4MWAbGz8xnpfJvzvMxMi";
-    BOOST_CHECK_EQUAL(ConvertToOldAddress(ConvertToNewAddress(p2sh_addr)), p2sh_addr);
-}
+// BOOST_AUTO_TEST_CASE(address_compatible)
+// {
+//     std::string p2pkh_addr = "16FoV6CpUT5YPHL8rcY7SQoHvnyXY4yRsD";
+//     BOOST_CHECK_EQUAL(ConvertToOldAddress(ConvertToNewAddress(p2pkh_addr)), p2pkh_addr);
+//     std::string p2sh_addr = "3CjLoKt9KYcfjf4MWAbGz8xnpfJvzvMxMi";
+//     BOOST_CHECK_EQUAL(ConvertToOldAddress(ConvertToNewAddress(p2sh_addr)), p2sh_addr);
+// }
 
-BOOST_AUTO_TEST_CASE(cltv_multisig_whitelist)
+// BOOST_AUTO_TEST_CASE(cltv_multisig_whitelist)
+// {
+//     std::vector<CltvMultiSigTestData> data = GetCltvMultiSigTestData();
+//     const CChainParams& params = Params();
+//     for (const CltvMultiSigTestData& test_case : data) {
+//         std::vector<unsigned char> redeem_script_data = ParseHex(test_case.redeem_script);
+//         CScript redeem_script(redeem_script_data.begin(), redeem_script_data.end());
+//         CScript p2sh_script = GetScriptForDestination(CScriptID(redeem_script));
+//         BOOST_CHECK(params.IsPremineAddressScript(p2sh_script, test_case.height));
+//     }
+// }
+BOOST_AUTO_TEST_CASE(JacobEmaCalculate)
 {
-    std::vector<CltvMultiSigTestData> data = GetCltvMultiSigTestData();
-    const CChainParams& params = Params();
-    for (const CltvMultiSigTestData& test_case : data) {
-        std::vector<unsigned char> redeem_script_data = ParseHex(test_case.redeem_script);
-        CScript redeem_script(redeem_script_data.begin(), redeem_script_data.end());
-        CScript p2sh_script = GetScriptForDestination(CScriptID(redeem_script));
-        BOOST_CHECK(params.IsPremineAddressScript(p2sh_script, test_case.height));
-    }
+    int T = 600;
+    int N = 50;
+    uint64_t solve_time = 755;
+    uint32_t previous_target = 0xf333333;
+    uint32_t target = JacobEmaCalculateNextWorkRequired(T, N, solve_time, previous_target);
+    std::cout<<"target:"<<target;
 }
-
 BOOST_AUTO_TEST_SUITE_END()
